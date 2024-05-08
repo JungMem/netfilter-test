@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -39,7 +38,7 @@ static uint32_t print_pkt (struct nfq_data *tb)
 	struct nfqnl_msg_packet_hw *hwph;
 	uint32_t mark, ifi, uid, gid;
 	int ret, data_len;
-	unsigned char *data, *secdata, *http;
+	unsigned char *data, *secdata, *http, *host_ptr;
 	
 	uint8_t ipv4_len, tcp_len;
 
@@ -110,7 +109,13 @@ static uint32_t print_pkt (struct nfq_data *tb)
 				if(strncmp(http, "GET", 3) == 0 || strncmp(http, "POST", 4) == 0 || strncmp(http, "POST", 4) == 0 || strncmp(http, "PUT", 3) == 0 || strncmp(http, "DELETE", 6) == 0 || strncmp(http, "PATCH", 5) == 0 || strncmp(http, "HEAD", 4) == 0 || strncmp(http, "OPTIONS", 7) == 0 || strncmp(http, "CONNECT", 7) == 0){
 					printf("\n********** HTTP Request Detected **********\n");	
 					
-					if(strncmp(site, http+22, len) == 0){
+					host_ptr = strstr(http, "Host: ");
+					if(host_ptr == NULL){
+						printf("strstr error\n");
+						return -1;
+					}
+
+					if(strncmp(site, host_ptr+6, len) == 0){
 						printf("\n!!!!!!!!!! Target Detected !!!!!!!!!!\n");	
 						verdict = NF_DROP;
 					}
