@@ -38,7 +38,7 @@ static uint32_t print_pkt (struct nfq_data *tb)
 	struct nfqnl_msg_packet_hdr *ph;
 	struct nfqnl_msg_packet_hw *hwph;
 	uint32_t mark, ifi, uid, gid;
-	int ret;
+	int ret, data_len;
 	unsigned char *data, *secdata, *http;
 	
 	uint8_t ipv4_len, tcp_len;
@@ -101,14 +101,22 @@ static uint32_t print_pkt (struct nfq_data *tb)
 			struct libnet_tcp_hdr* tcp_hdr = ipv4_hdr+1;
 			tcp_len = ((tcp_hdr->hlen)>>4)*4;
 			
+			data_len = ret - tcp_len + ipv4_len;
+			
 			/* http request */
-			if(tcp_len + ipv4_len != ret && ntohs(tcp_hdr->th_dport) == 80){
+			if(data_len > 0){
 				http = (unsigned char*)(tcp_hdr) + tcp_len;
 				
-				if(strncmp(site, http+22, len) == 0){
-					printf("\n********** Target Detected **********\n");	
-					verdict = NF_DROP;
+				if(strncmp(http, "GET", 3) == 0 || strncmp(http, "POST", 4) == 0 || strncmp(http, "POST", 4) == 0 || strncmp(http, "PUT", 3) == 0 || strncmp(http, "DELETE", 6) == 0 || strncmp(http, "PATCH", 5) == 0 || strncmp(http, "HEAD", 4) == 0 || strncmp(http, "OPTIONS", 7) == 0 || strncmp(http, "CONNECT", 7) == 0){
+					printf("\n********** HTTP Request Detected **********\n");	
+					
+					if(strncmp(site, http+22, len) == 0){
+						printf("\n!!!!!!!!!! Target Detected !!!!!!!!!!\n");	
+						verdict = NF_DROP;
+					}
+					
 				}
+				
 			}
 		
 		}
