@@ -110,11 +110,6 @@ static uint32_t print_pkt (struct nfq_data *tb)
 					printf("\n********** HTTP Request Detected **********\n");	
 					
 					host_ptr = strstr(http, "Host: ");
-					if(host_ptr == NULL){
-						printf("strstr error\n");
-						return -1;
-					}
-
 					if(strncmp(site, host_ptr+6, len) == 0){
 						printf("\n!!!!!!!!!! Target Detected !!!!!!!!!!\n");	
 						verdict = NF_DROP;
